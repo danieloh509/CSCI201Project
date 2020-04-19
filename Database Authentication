@@ -1,0 +1,6 @@
+Username: F2GCT4gVsA
+Password: fYBU5EacV2
+IP Address: remotemysql.com
+Port: 3306
+
+Put this line in the getConnection function to establish a connection: "jdbc:mysql://remotemysql.com:3306/?user=F2GCT4gVsA&password=fYBU5EacV2" 
