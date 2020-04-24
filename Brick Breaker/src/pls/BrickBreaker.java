@@ -1,5 +1,6 @@
 package pls;
 
+
 import org.lwjgl.LWJGLException;
 import org.lwjgl.Sys;
 import org.lwjgl.input.Keyboard;
@@ -27,24 +28,33 @@ public class BrickBreaker {
     private static Bat bat;
     private static double BALL_SPEED = 0.3;
     private static int BAT_LENGTH = 80;
+    private static int stage = 1;
 
     private static final List<Brick> bricks = new ArrayList<Brick>(50);
+    private static int[] sections = new int[8];
 
 
     private static long lastFrame;
 
     public static void main(String args[]){
+    	
+    	
+    	
+    	
+    	
         setUpDisplay();
         setUpOpenGL();
         setUpEntities();
         setUpTimer();
+        
+        
 
         
-        System.out.println(bat.getX() + " , " + bat.getY());
+        //System.out.println(bat.getX() + " , " + bat.getY());
         
         
         while (isRunning) {
-            System.out.println(ball.getX() + " , " + ball.getY()); //ball coord checking
+            //System.out.println(ball.getX() + " , " + ball.getY()); //ball coord checking
             render();
             logic(getDelta());
             input();
@@ -61,9 +71,14 @@ public class BrickBreaker {
 
     public static void setUpDisplay(){
         try {
+        	
             Display.setDisplayMode(new DisplayMode(WIDTH, HEIGHT));
             Display.setTitle("Brick Breaker");
             Display.create();
+            glClear(GL_COLOR_BUFFER_BIT);
+            //glClearColor(157, 34, 53, 1);
+            glClearColor((float)0.615, (float)0.13333, (float)0.2078, 1);
+            
         } catch (LWJGLException e) {
             Display.destroy();
             e.printStackTrace();
@@ -79,12 +94,16 @@ public class BrickBreaker {
         glMatrixMode(GL_MODELVIEW);
     }
 
+    
+   
+    
     public static void setUpEntities(){
         bat = new Bat(WIDTH / 2, HEIGHT -30 , BAT_LENGTH, 20);
-        int[] sections = new int[8];
+        
         for(int i = 1; i <= 8; i++)
         {
         	sections[i - 1] = (BAT_LENGTH / 8) * i;
+        	System.out.println(sections[i-1]);
         }
 
         ball = new Ball(bat.getX() + 20, bat.getY() - 30, 10, 10);
@@ -95,15 +114,58 @@ public class BrickBreaker {
         
         
         //MAKE BRICK LAYOUT
-        int xPos = 20, yPos = 20;
-        for (int i = 0; i < 50; i++) {
-            bricks.add(new Brick(xPos, yPos, true));
-            xPos += 60;
-            if (xPos > 560) {
-                xPos = 20;
-                yPos += 30;
-            }
+        
+        if(stage == 1)
+        {
+        
+        	int xPos = 20, yPos = 20;
+	        for (int i = 0; i < 50; i++) {
+	            bricks.add(new Brick(xPos, yPos, true));
+	            xPos += 60;
+	            if (xPos > 560) {
+	                xPos = 20;
+	                yPos += 30;
+	            }
+	        }
+        }else if(stage == 2)
+        {
+        	int xPos = 20, yPos = 20;
+        	for (int i = 0; i < 50; i++) {
+	            bricks.add(new Brick(xPos, yPos, true));
+	            if(i%2 == 0)
+	            {
+	            	bricks.get(i).setUsed(false);
+	            	bricks.get(i).setX(0);
+	                bricks.get(i).setY(0);
+	            }
+	            xPos += 60;
+	            if (xPos > 560) {
+	                xPos = 20;
+	                yPos += 30;
+	            }
+	        }
+        	
+        }else if(stage == 3)
+        {
+        	
+        	int xPos = 20, yPos = 20;
+        	for (int i = 0; i < 50; i++) {
+	            bricks.add(new Brick(xPos, yPos, true));
+	            if((i > 9 && i < 20)||(i > 29 && i < 40))
+	            {
+	            	bricks.get(i).setUsed(false);
+	            	bricks.get(i).setX(0);
+	                bricks.get(i).setY(0);
+	            }
+	            xPos += 60;
+	            if (xPos > 560) {
+	                xPos = 20;
+	                yPos += 30;
+	            }
+	        }
+        	
         }
+        
 
     }
 
@@ -138,21 +200,61 @@ public class BrickBreaker {
 
         for (Brick brick : bricks) {
             if (ball.intersects(brick)) {
-                ball.setDY(Math.abs((ball.getDY())));
-                brick.setUsed(false);
+            	
+            	
+            
+            	/*
+            	if(ball.getY() <= brick.getY() + (brick.getHeight() / 2))
+            	{
+            		 ball.setDY(-1*((ball.getDY())));
+            	}else if(ball.getY() >= brick.getY() - (brick.getHeight() / 2)){
+            		 ball.setDY(-1*((ball.getDY())));
+            	}else if(ball.getX() < brick.getX()){
+            		System.out.println("Hit Side");
+            		ball.setDX(-1 * ball.getDX());
+            	}else if(ball.getX() > brick.getX()){
+            		System.out.println("Hit Side");
+            		ball.setDX(-1 * ball.getDX());
+            	}
+            	*/
+            	
+            	//if(ball.getX() == brick.getX() || ball.getX() == (brick.getX() + brick.getWidth()))
+            	//{
+            	//	System.out.println("Hit Side");
+            	//	ball.setDX(-1 * ball.getDX());
+            	//	
+            	//}else{
+	                
+            	//}
+            	
+            
+            	
+            	ball.setDY(-1*((ball.getDY())));
+            	brick.setUsed(false);
                 brick.setX(0);
                 brick.setY(0);
             }
         }
         
+        
+        
         //ball.getX() >= bat.getX() && ball.getY() >= bat.getY()
         //ball hit the bat
         if (ball.intersects(bat)) {
         	
+        	int curSec = 0;
         	
+        	for(int i = 0; i < 8; i++)
+        	{
+        		if(ball.getX() - bat.getX() < sections[i])
+        		{
+        			curSec = i;
+        			i = 8;
+        		}
+        	}
         	
-        	System.out.println(ball.getDX());
-        	System.out.println(bat.getDX());
+        	System.out.println("ball coord = " + ball.getX());
+        	System.out.println("bat coord = " + bat.getX());
 
             ball.setDY(-Math.abs(ball.getDY()));
             //ball.setDX(-Math.abs(ball.getDX())+0.1/3);
@@ -160,7 +262,11 @@ public class BrickBreaker {
 
             //ball.setDX(Math.abs(ball.getDX()));
             
-            ball.setDX(ball.getDX() + bat.getDX());
+            
+            
+            System.out.println(curSec);
+            
+            ball.setDX((curSec - 3.5) * 0.1);
 
         }
 
@@ -196,9 +302,10 @@ public class BrickBreaker {
     }
 
     private static void input() {
-        if (Keyboard.isKeyDown(Keyboard.KEY_LEFT)) {
+        if (Keyboard.isKeyDown(Keyboard.KEY_LEFT) && bat.getX() > 0) {
+        	
             bat.setDX(-bat.getSpeed());
-        } else if (Keyboard.isKeyDown(Keyboard.KEY_RIGHT)) {
+        } else if (Keyboard.isKeyDown(Keyboard.KEY_RIGHT) && bat.getX() + bat.getWidth() < WIDTH) {
             bat.setDX(bat.getSpeed());
         } else {
             bat.setDX(0);
