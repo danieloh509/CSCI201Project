@@ -47,11 +47,24 @@ public class BrickBreaker {
     private static int[] sections = new int[8];
     private static long wide;
     private static long slow;
+    private static int difficulty;
 
     
     public BrickBreaker(){
     	String args[] = null;
     	main(args);
+    }
+    
+    public int getScore(){
+    	return score;
+    }
+    
+    public int getDifficulty(){
+    	return difficulty;
+    }
+    
+    public void setDifficulty(int dif){
+    	difficulty = dif;
     }
 
 
