@@ -33,12 +33,18 @@ public class BrickBreaker {
     private static Bat bat;
     private static double BALL_SPEED = 0.3;
     private static int BAT_LENGTH = 80;
-    private static int stage = 3;
+    private static int BAT_HEIGHT = 15;
+    private static int stage = 2;
     private static int timeScore = 600;
     private static int score = 0;
+    private static double BAT_SPEED = 0.6;
     private static int blockVal = 0;
+    private static boolean isWide = false;
+    private static boolean isSlow = false;
     private static final List<Brick> bricks = new ArrayList<Brick>(50);
     private static int[] sections = new int[8];
+    private static long wide;
+    private static long slow;
 
 
 
@@ -74,14 +80,16 @@ public class BrickBreaker {
         }
         
         Date end = new Date();
-        timeScore -= (int) ((end.getTime() - start.getTime())/200);
+        timeScore -= ((int) ((end.getTime() - start.getTime())/1000))*5;
         if(timeScore < 0) {
         	timeScore = 0;
         }
         if(balls.size() > 0) {
         	score += timeScore;
         }
+        
         System.out.println(score);
+        System.out.println(stage);
         Display.destroy();
         System.exit(0);
 
@@ -129,9 +137,11 @@ public class BrickBreaker {
         
         if(stage == 1)
         {
-        	bat = new Bat(WIDTH / 2, HEIGHT -30 , BAT_LENGTH+20, 20);
+        	BAT_LENGTH += 20;
+        	BAT_HEIGHT += 5;
         	blockVal = 10;
         	BALL_SPEED = 0.3;
+        	BAT_SPEED -= 0.1;
         	int xPos = 20, yPos = 20;
 	        for (int i = 0; i < 40; i++) {
 	        	if(i < 10 || i>19 && i<30) {
@@ -158,49 +168,48 @@ public class BrickBreaker {
 	        }
         }else if(stage == 2)
         {
-        	bat = new Bat(WIDTH / 2, HEIGHT -30 , BAT_LENGTH, 15);
         	blockVal = 20;
         	BALL_SPEED = 0.4;
-        	bat.setSpeed(0.6);
         	int xPos = 20, yPos = 20;
-        	for (int i = 0; i < 80; i++) {
-	            bricks.add(new Brick(xPos, yPos, true, 1));
-	            if(i%2 == 0)
-	            {
-	            	bricks.get(i).setUsed(false);
-	            	bricks.get(i).setX(0);
-	                bricks.get(i).setY(0);
-	            }
+        	for (int i = 0; i < 50; i++) {
+		        if(i < 20) {
+	        			bricks.add(new Brick(xPos, yPos, true, 1));
+		        	}
+		        else if((i > 19 && i < 33) || (i > 36 && i < 42) || (i > 47 && i < 50)){
+		        		bricks.add(new Brick(xPos, yPos, true, 2));
+		        }
 	            xPos += 60;
 	            if (xPos > 560) {
 	                xPos = 20;
 	                yPos += 30;
 	            }
 	        }
-        	
-        }else if(stage == 3)
-        {
-        	bat = new Bat(WIDTH / 2, HEIGHT -30 , BAT_LENGTH-20, 10);
+	    }else if(stage == 3)
+	    {
+        	BAT_LENGTH -= 20;
+        	BAT_HEIGHT -= 5;
         	blockVal = 30;
         	BALL_SPEED = 0.5;
-        	bat.setSpeed(0.7);
+        	BAT_SPEED += 0.1;
         	int xPos = 20, yPos = 20;
-        	for (int i = 0; i < 50; i++) {
-	            bricks.add(new Brick(xPos, yPos, true, 1));
-	            if((i > 9 && i < 20)||(i > 29 && i < 40))
-	            {
-	            	bricks.get(i).setUsed(false);
-	            	bricks.get(i).setX(0);
-	                bricks.get(i).setY(0);
-	            }
-	            xPos += 60;
-	            if (xPos > 560) {
-	                xPos = 20;
-	                yPos += 30;
-	            }
+        	for (int i = 0; i < 60; i++) {
+	        	if(i == 0 || i == 9 || i == 21 || i == 28 || i == 31 || i == 32 || i == 37 || i == 38 || (i >50 && i <59)) {
+	        			bricks.add(new Brick(xPos, yPos, true, 1));
+		        	}
+		        else if((i > 10 && i < 19)|| i == 20 || i == 29 || i == 30 || (i > 38 && i < 50)){
+		        		bricks.add(new Brick(xPos, yPos, true, 2));
+		        }
+		        xPos += 60;
+		        if (xPos > 560) {
+		            xPos = 20;
+		            yPos += 30;
+		        }
 	        }
         	
         }
+        
+        bat = new Bat(WIDTH / 2, HEIGHT -30 , BAT_LENGTH, BAT_HEIGHT);
+        bat.setSpeed(BAT_SPEED);
         balls.add(new Ball(bat.getX() + 20, bat.getY() - 30, 10, 10));
         
         //SET BALL SPEED
@@ -209,6 +218,7 @@ public class BrickBreaker {
         
 
     }
+
 
     private static int getDelta() {
         long currentTime = getTime();
@@ -272,18 +282,56 @@ public class BrickBreaker {
 			            	}
 
 			            	brick.hit();
-			            	powerUp = ran.nextInt(25);
+			            	if(!brick.isUse()) { //If the brick was destroyed, roll for a power up
+			            		powerUp = ran.nextInt(25);
+			            	}
 			            	score += blockVal;
 			            }
 	        		}
         		}
         	}
         }
-        
+
     	if(powerUp == 12 && balls.size() < 3) {
             balls.add(new Ball(bat.getX() + 20, bat.getY() - 30, 10, 10));
-            balls.get(balls.size()-1).setSpeed(BALL_SPEED);
+            if(!isSlow) {
+            	balls.get(balls.size()-1).setSpeed(BALL_SPEED);
+            }
+            else {
+            	balls.get(balls.size()-1).setSpeed(BALL_SPEED/2); //spawn the ball with a low speed if isSlow is active
+            }
             balls.get(balls.size()-1).setDY(balls.get(balls.size()-1).getSpeed());
+    	}
+    	else if(powerUp == 13 && !isWide) {
+    		bat = new Bat(bat.getX(), bat.getY() , BAT_LENGTH+20, BAT_HEIGHT);
+    		wide = Sys.getTime();
+    		isWide = true;
+    	}
+    	else if(powerUp == 14 && !isSlow) {
+    		slow = getTime();
+    		for(Ball ball : balls) {
+    			ball.setDY(ball.getDY()/2);
+    			ball.setDX(ball.getDX()/2);
+    		}
+    		isSlow = true;
+    	}
+    	
+
+    	if(isWide) { //check if power up needs to expire
+			if((Sys.getTime() - wide) >= 5000){
+    			bat = new Bat(bat.getX(), bat.getY() , BAT_LENGTH, BAT_HEIGHT);
+    			isWide = false;
+    		}
+    	}
+    	
+    	if(isSlow) {
+    		if((Sys.getTime() - slow) >= 5000) {
+        		for(Ball ball : balls) {
+        			ball.setDY(ball.getDY()*2);
+        			ball.setDX(ball.getDX()*2);
+        		}
+    			isSlow = false;
+    		}
     	}
         
         
@@ -323,12 +371,12 @@ public class BrickBreaker {
 	        }
 	
 	        //Top Bound
-	        if (ball.getY() < 0) {
+	        if (ball.getY() <= 2) {
 	            ball.setDY(-ball.getDY());
 	        }
 	
 	        //left
-	        if (ball.getX() <= 0) {
+	        if (ball.getX() <= 2) {
 	            ball.setDX(Math.abs(ball.getDX()));
 	            ball.setDX(ball.getDX() + bat.getDX() / 3 + (double) (1 - ran.nextInt(2)) / 200);
 	        }
