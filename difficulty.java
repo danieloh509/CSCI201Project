@@ -48,7 +48,7 @@ public class difficulty extends JPanel implements KeyListener, ActionListener{
 		title.setBounds(-180, 80, 1000, 100);
 
 		hard = new JButton("Hard");
-		hard.setBounds(270, 240, 100, 25);
+		hard.setBounds(270, 320, 100, 25);
 		hard.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
 				level = "hard";
@@ -61,17 +61,17 @@ public class difficulty extends JPanel implements KeyListener, ActionListener{
 		medium.setBounds(270, 280, 100, 25);
 		hard.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
-				level = "hard";
+				level = "medium";
 				nextScreen = true;
 			}
 			
 		});
 		
 		easy = new JButton("Easy");
-		easy.setBounds(270, 320, 100, 25);
+		easy.setBounds(270, 240, 100, 25);
 		hard.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
-				level = "hard";
+				level = "easy";
 				nextScreen = true;
 			}
 			
