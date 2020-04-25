@@ -1,15 +1,18 @@
 package pls;
 
-
 import org.lwjgl.LWJGLException;
 import org.lwjgl.Sys;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.DisplayMode;
 
+
+
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Random;
+
 
 import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.opengl.GL11.GL_COLOR_BUFFER_BIT;
@@ -24,14 +27,19 @@ public class BrickBreaker {
     private static final int WIDTH = 640;
     private static final int HEIGHT = 480;
     private static boolean isRunning = true;
-    private static Ball ball;
+    private static Random ran;
+    //private static Ball ball;
+    private static final List<Ball> balls = new ArrayList<Ball>(3);
     private static Bat bat;
     private static double BALL_SPEED = 0.3;
     private static int BAT_LENGTH = 80;
-    private static int stage = 1;
-
+    private static int stage = 3;
+    private static int timeScore = 600;
+    private static int score = 0;
+    private static int blockVal = 0;
     private static final List<Brick> bricks = new ArrayList<Brick>(50);
     private static int[] sections = new int[8];
+
 
 
     private static long lastFrame;
@@ -52,7 +60,7 @@ public class BrickBreaker {
         
         //System.out.println(bat.getX() + " , " + bat.getY());
         
-        
+        Date start = new Date();
         while (isRunning) {
             //System.out.println(ball.getX() + " , " + ball.getY()); //ball coord checking
             render();
@@ -64,6 +72,16 @@ public class BrickBreaker {
                 isRunning = false;
             }
         }
+        
+        Date end = new Date();
+        timeScore -= (int) ((end.getTime() - start.getTime())/200);
+        if(timeScore < 0) {
+        	timeScore = 0;
+        }
+        if(balls.size() > 0) {
+        	score += timeScore;
+        }
+        System.out.println(score);
         Display.destroy();
         System.exit(0);
 
@@ -98,29 +116,40 @@ public class BrickBreaker {
    
     
     public static void setUpEntities(){
-        bat = new Bat(WIDTH / 2, HEIGHT -30 , BAT_LENGTH, 20);
+    	ran = new Random();
         
         for(int i = 1; i <= 8; i++)
         {
         	sections[i - 1] = (BAT_LENGTH / 8) * i;
-        	System.out.println(sections[i-1]);
+        	//System.out.println(sections[i-1]);
         }
-
-        ball = new Ball(bat.getX() + 20, bat.getY() - 30, 10, 10);
-        
-        //SET BALL SPEED
-        ball.setSpeed(BALL_SPEED);
-        ball.setDY(ball.getSpeed());
         
         
         //MAKE BRICK LAYOUT
         
         if(stage == 1)
         {
-        
+        	bat = new Bat(WIDTH / 2, HEIGHT -30 , BAT_LENGTH+20, 20);
+        	blockVal = 10;
+        	BALL_SPEED = 0.3;
         	int xPos = 20, yPos = 20;
-	        for (int i = 0; i < 50; i++) {
-	            bricks.add(new Brick(xPos, yPos, true));
+	        for (int i = 0; i < 40; i++) {
+	        	if(i < 10 || i>19 && i<30) {
+		        	if(i%2 == 0) {
+		        		bricks.add(new Brick(xPos, yPos, true, 2));
+		        	}
+		        	else {
+		        		bricks.add(new Brick(xPos, yPos, true, 1));
+		        	}
+	        	}
+	        	else{
+		        	if(i%2 == 1) {
+		        		bricks.add(new Brick(xPos, yPos, true, 2));
+		        	}
+		        	else {
+		        		bricks.add(new Brick(xPos, yPos, true, 1));
+		        	}
+	        	}
 	            xPos += 60;
 	            if (xPos > 560) {
 	                xPos = 20;
@@ -129,9 +158,13 @@ public class BrickBreaker {
 	        }
         }else if(stage == 2)
         {
+        	bat = new Bat(WIDTH / 2, HEIGHT -30 , BAT_LENGTH, 15);
+        	blockVal = 20;
+        	BALL_SPEED = 0.4;
+        	bat.setSpeed(0.6);
         	int xPos = 20, yPos = 20;
-        	for (int i = 0; i < 50; i++) {
-	            bricks.add(new Brick(xPos, yPos, true));
+        	for (int i = 0; i < 80; i++) {
+	            bricks.add(new Brick(xPos, yPos, true, 1));
 	            if(i%2 == 0)
 	            {
 	            	bricks.get(i).setUsed(false);
@@ -147,10 +180,13 @@ public class BrickBreaker {
         	
         }else if(stage == 3)
         {
-        	
+        	bat = new Bat(WIDTH / 2, HEIGHT -30 , BAT_LENGTH-20, 10);
+        	blockVal = 30;
+        	BALL_SPEED = 0.5;
+        	bat.setSpeed(0.7);
         	int xPos = 20, yPos = 20;
         	for (int i = 0; i < 50; i++) {
-	            bricks.add(new Brick(xPos, yPos, true));
+	            bricks.add(new Brick(xPos, yPos, true, 1));
 	            if((i > 9 && i < 20)||(i > 29 && i < 40))
 	            {
 	            	bricks.get(i).setUsed(false);
@@ -165,6 +201,11 @@ public class BrickBreaker {
 	        }
         	
         }
+        balls.add(new Ball(bat.getX() + 20, bat.getY() - 30, 10, 10));
+        
+        //SET BALL SPEED
+        balls.get(0).setSpeed(BALL_SPEED);
+        balls.get(0).setDY(balls.get(0).getSpeed());
         
 
     }
@@ -185,113 +226,129 @@ public class BrickBreaker {
     public static void render(){
         glClear(GL_COLOR_BUFFER_BIT);
 
-        ball.draw();
+        for(Ball ball : balls) {
+        	ball.draw();
+        }
         bat.draw();
+        boolean hasBricks = false;
         for (Brick brick : bricks) {
             if (brick.isUse()){
                 brick.draw();
+                hasBricks = true;
             }
+        }
+        if(!hasBricks) {
+        	isRunning = false;
         }
     }
 
     private static void logic(int delta) {
-        ball.update(delta);
+    	for(Ball ball : balls) {
+    		ball.update(delta);
+    	}
         bat.update(delta);
+        int powerUp = 0;
+        for(Ball ball : balls) {
+        	double x = ball.getX();
+        	double y = ball.getY();
+        	for (Brick brick : bricks) {
+        		if(x > brick.getX()-20 && x < brick.getX()+70 && y > brick.getY() - 10 && y < brick.getY() +30) {
+	        		if(brick.isUse()) {
+			            if (ball.intersects(brick)) {
+			            	//System.out.println("ball x: " + ball.getX());
+			            	//System.out.println("ball y: " + ball.getY());
+			            	//System.out.println("brick x: " + brick.getX());
+			            	//System.out.println("brick y: " + brick.getY());
+			            	
+			            	if(ball.getX() > (brick.getX()) && ball.getX() < (brick.getX() + brick.getWidth()))
+			            	{
+			            		//System.out.println("Hit X");
+			            		ball.setDY(-1*((ball.getDY())));
+			            	}
+			            	else if(ball.getY() > (brick.getY()+2) && ball.getY() < (brick.getY() + brick.getHeight()-2))
+			            	{
+			            		//System.out.println("Hit Y");
+			            		ball.setDX(-1*((ball.getDX())));
+			            	}
 
-        for (Brick brick : bricks) {
-            if (ball.intersects(brick)) {
-            	
-            	
-            
-            	/*
-            	if(ball.getY() <= brick.getY() + (brick.getHeight() / 2))
-            	{
-            		 ball.setDY(-1*((ball.getDY())));
-            	}else if(ball.getY() >= brick.getY() - (brick.getHeight() / 2)){
-            		 ball.setDY(-1*((ball.getDY())));
-            	}else if(ball.getX() < brick.getX()){
-            		System.out.println("Hit Side");
-            		ball.setDX(-1 * ball.getDX());
-            	}else if(ball.getX() > brick.getX()){
-            		System.out.println("Hit Side");
-            		ball.setDX(-1 * ball.getDX());
-            	}
-            	*/
-            	
-            	//if(ball.getX() == brick.getX() || ball.getX() == (brick.getX() + brick.getWidth()))
-            	//{
-            	//	System.out.println("Hit Side");
-            	//	ball.setDX(-1 * ball.getDX());
-            	//	
-            	//}else{
-	                
-            	//}
-            	
-            
-            	
-            	ball.setDY(-1*((ball.getDY())));
-            	brick.setUsed(false);
-                brick.setX(0);
-                brick.setY(0);
-            }
+			            	brick.hit();
+			            	powerUp = ran.nextInt(25);
+			            	score += blockVal;
+			            }
+	        		}
+        		}
+        	}
         }
+        
+    	if(powerUp == 12 && balls.size() < 3) {
+            balls.add(new Ball(bat.getX() + 20, bat.getY() - 30, 10, 10));
+            balls.get(balls.size()-1).setSpeed(BALL_SPEED);
+            balls.get(balls.size()-1).setDY(balls.get(balls.size()-1).getSpeed());
+    	}
         
         
         
         //ball.getX() >= bat.getX() && ball.getY() >= bat.getY()
         //ball hit the bat
-        if (ball.intersects(bat)) {
-        	
-        	int curSec = 0;
-        	
-        	for(int i = 0; i < 8; i++)
-        	{
-        		if(ball.getX() - bat.getX() < sections[i])
-        		{
-        			curSec = i;
-        			i = 8;
-        		}
-        	}
-        	
-        	System.out.println("ball coord = " + ball.getX());
-        	System.out.println("bat coord = " + bat.getX());
-
-            ball.setDY(-Math.abs(ball.getDY()));
-            //ball.setDX(-Math.abs(ball.getDX())+0.1/3);
-
-
-            //ball.setDX(Math.abs(ball.getDX()));
-            
-            
-            
-            System.out.println(curSec);
-            
-            ball.setDX((curSec - 3.5) * 0.1);
-
+        for(int z = 0; z < balls.size(); z++) {
+        	Ball ball = balls.get(z);
+	        if (ball.intersects(bat)) {
+	        	
+	        	int curSec = 0;
+	        	
+	        	for(int i = 0; i < 8; i++)
+	        	{
+	        		if(ball.getX() - bat.getX() < sections[i])
+	        		{
+	        			curSec = i;
+	        			i = 8;
+	        		}
+	        	}
+	        	
+	        	//System.out.println("ball coord = " + ball.getX());
+	        	//System.out.println("bat coord = " + bat.getX());
+	
+	            ball.setDY(-Math.abs(ball.getDY()));
+	            //ball.setDX(-Math.abs(ball.getDX())+0.1/3);
+	
+	
+	            //ball.setDX(Math.abs(ball.getDX()));
+	            
+	            
+	            
+	            //System.out.println(curSec);
+	            
+	            ball.setDX((curSec - 3.5) * 0.1);
+	
+	        }
+	
+	        //Top Bound
+	        if (ball.getY() < 0) {
+	            ball.setDY(-ball.getDY());
+	        }
+	
+	        //left
+	        if (ball.getX() <= 0) {
+	            ball.setDX(Math.abs(ball.getDX()));
+	            ball.setDX(ball.getDX() + bat.getDX() / 3 + (double) (1 - ran.nextInt(2)) / 200);
+	        }
+	
+	        //right
+	        if (ball.getX() >= WIDTH-2){
+	            ball.setDX(-ball.getDX());
+	        }
+	        //ball.getY() > HEIGHT - ball.getHeight()
+	
+	        //bottom
+	        if (ball.getY() >= HEIGHT-2) {
+	            //remove the ball
+	            balls.remove(z);
+	        }
         }
-
-        //Top Bound
-        if (ball.getY() < 0) {
-            ball.setDY(-ball.getDY());
-        }
-
-        //left
-        if (ball.getX() <= 0) {
-            ball.setDX(Math.abs(ball.getDX()));
-            Random ran = new Random();
-            ball.setDX(ball.getDX() + bat.getDX() / 3 + (double) (1 - ran.nextInt(2)) / 200);
-        }
-
-        //right
-        if (ball.getX() > WIDTH){
-            ball.setDX(-ball.getDX());
-        }
-        //ball.getY() > HEIGHT - ball.getHeight()
-
-        //bottom
-        if (ball.getY() > HEIGHT) {
-            //reset game
-            setUpEntities();
+        
+        //If no balls remaining
+        if(balls.size() == 0) {
+        	isRunning = false;
         }
 
         //fix DY if DY is too large
