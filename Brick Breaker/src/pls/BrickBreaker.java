@@ -20,6 +20,8 @@ import static org.lwjgl.opengl.GL11.GL_COLOR_BUFFER_BIT;
 
 public class BrickBreaker {
 
+	
+	
     //private static final int FRAME_WIDTH = 400;
     //private static final int FRAME_HEIGHT = FRAME_WIDTH / 16 * 9;
     //private static final int SCALE = 3;
@@ -46,13 +48,18 @@ public class BrickBreaker {
     private static long wide;
     private static long slow;
 
+    
+    public BrickBreaker(){
+    	String args[] = null;
+    	main(args);
+    }
 
 
     private static long lastFrame;
 
     public static void main(String args[]){
     	
-    	
+    	System.out.println("starting");
     	
     	
     	
