@@ -37,7 +37,7 @@ public class BrickBreaker {
     private static double BALL_SPEED = 0.3;
     private static int BAT_LENGTH = 80;
     private static int BAT_HEIGHT = 15;
-    private static int stage = 1;
+    private static int stage = 3;
     private static int timeScore = 600;
     private static int score = 0;
     private static double BAT_SPEED = 0.6;
@@ -49,6 +49,7 @@ public class BrickBreaker {
     private static long wide;
     private static long slow;
     private static int difficulty;
+    private static boolean canEnd = false;
     static int multiplayer = 2;
 
     
@@ -60,6 +61,7 @@ public class BrickBreaker {
     }
     
     public int getScore(){
+    	canEnd = true;
     	return score;
     }
     
@@ -70,7 +72,11 @@ public class BrickBreaker {
     public void setDifficulty(int dif){
     	difficulty = dif;
     }
-
+    
+    public boolean running() {
+    	return isRunning;
+    }
+    
 
     private static long lastFrame;
 
@@ -114,6 +120,7 @@ public class BrickBreaker {
         
         System.out.println(score);
         System.out.println(stage);
+        while(!canEnd) {} //Wait for score to be pulled to end.
         Display.destroy();
         System.exit(0);
 
