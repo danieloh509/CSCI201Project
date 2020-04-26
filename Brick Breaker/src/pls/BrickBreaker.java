@@ -33,6 +33,8 @@ public class BrickBreaker {
     //private static Ball ball;
     private static final List<Ball> balls = new ArrayList<Ball>(3);
     private static Bat bat;
+    private static Bat bat2;
+
     private static double BALL_SPEED = 0.3;
     private static int BAT_LENGTH = 80;
     private static int BAT_HEIGHT = 15;
@@ -48,6 +50,7 @@ public class BrickBreaker {
     private static long wide;
     private static long slow;
     private static int difficulty;
+    static int multiplayer = 1;
 
     
     public BrickBreaker(){
@@ -229,7 +232,15 @@ public class BrickBreaker {
         }
         
         bat = new Bat(WIDTH / 2, HEIGHT -30 , BAT_LENGTH, BAT_HEIGHT);
+        if(multiplayer == 2)
+        {
+        	bat2 = new Bat(WIDTH / 2, HEIGHT -30 , BAT_LENGTH, BAT_HEIGHT);
+        	bat2.setX(0);
+        	bat2.setSpeed(BAT_SPEED);
+        	bat2.color(1.0f, 0.0f, 1.0f);
+        }
         bat.setSpeed(BAT_SPEED);
+        
         balls.add(new Ball(bat.getX() + 20, bat.getY() - 30, 10, 10));
         
         //SET BALL SPEED
@@ -260,6 +271,10 @@ public class BrickBreaker {
         	ball.draw();
         }
         bat.draw();
+        if(multiplayer == 2)
+        {
+        	bat2.draw();
+        }
         boolean hasBricks = false;
         for (Brick brick : bricks) {
             if (brick.isUse()){
@@ -277,6 +292,10 @@ public class BrickBreaker {
     		ball.update(delta);
     	}
         bat.update(delta);
+        if(multiplayer == 2)
+        {
+        	bat2.update(delta);
+        }
         int powerUp = 0;
         for(Ball ball : balls) {
         	double x = ball.getX();
@@ -320,10 +339,15 @@ public class BrickBreaker {
             else {
             	balls.get(balls.size()-1).setSpeed(BALL_SPEED/2); //spawn the ball with a low speed if isSlow is active
             }
-            balls.get(balls.size()-1).setDY(balls.get(balls.size()-1).getSpeed());
+            balls.get(balls.size()-1).setDY(-1* Math.abs(balls.get(balls.size()-1).getSpeed()));
     	}
     	else if(powerUp == 13 && !isWide) {
     		bat = new Bat(bat.getX(), bat.getY() , BAT_LENGTH+20, BAT_HEIGHT);
+    		for(int i = 1; i <= 8; i++)
+            {
+            	sections[i - 1] = (BAT_LENGTH / 8) * i;
+            	//System.out.println(sections[i-1]);
+            }
     		wide = Sys.getTime();
     		isWide = true;
     	}
@@ -362,6 +386,8 @@ public class BrickBreaker {
         	Ball ball = balls.get(z);
 	        if (ball.intersects(bat)) {
 	        	
+	        	
+	        	
 	        	int curSec = 0;
 	        	
 	        	for(int i = 0; i < 8; i++)
@@ -377,17 +403,30 @@ public class BrickBreaker {
 	        	//System.out.println("bat coord = " + bat.getX());
 	
 	            ball.setDY(-Math.abs(ball.getDY()));
-	            //ball.setDX(-Math.abs(ball.getDX())+0.1/3);
-	
-	
-	            //ball.setDX(Math.abs(ball.getDX()));
 	            
-	            
-	            
-	            //System.out.println(curSec);
 	            
 	            ball.setDX((curSec - 3.5) * 0.1);
 	
+	        }else if(multiplayer == 2 && ball.intersects(bat2))
+	        {
+	        	int curSec = 0;
+	        	
+	        	for(int i = 0; i < 8; i++)
+	        	{
+	        		if(ball.getX() - bat2.getX() < sections[i])
+	        		{
+	        			curSec = i;
+	        			i = 8;
+	        		}
+	        	}
+	        	
+	        	//System.out.println("ball coord = " + ball.getX());
+	        	//System.out.println("bat coord = " + bat.getX());
+	
+	            ball.setDY(-Math.abs(ball.getDY()));
+	            
+	            
+	            ball.setDX((curSec - 3.5) * 0.1);
 	        }
 	
 	        //Top Bound
@@ -434,6 +473,18 @@ public class BrickBreaker {
             bat.setDX(bat.getSpeed());
         } else {
             bat.setDX(0);
+        }
+        
+        if(multiplayer == 2)
+        {
+        	if (Keyboard.isKeyDown(Keyboard.KEY_A) && bat2.getX() > 0) {
+            	
+                bat2.setDX(-bat2.getSpeed());
+            } else if (Keyboard.isKeyDown(Keyboard.KEY_D) && bat2.getX() + bat2.getWidth() < WIDTH) {
+                bat2.setDX(bat2.getSpeed());
+            } else {
+                bat2.setDX(0);
+            }
         }
     }
 

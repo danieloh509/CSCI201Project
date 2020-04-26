@@ -16,6 +16,9 @@ public class Brick extends AbstractEntity {
         this.life = life;
     }
 
+    
+   
+    
     @Override
     public void draw() {
         if(life == 2) {
@@ -26,6 +29,8 @@ public class Brick extends AbstractEntity {
         glBegin(GL_QUADS);
         
         glEnd();
+        
+        
         
         glColor3f(1.0f, 0.8f, 0.0f);
         
