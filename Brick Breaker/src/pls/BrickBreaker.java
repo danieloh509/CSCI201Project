@@ -1,5 +1,4 @@
 package pls;
-
 import org.lwjgl.LWJGLException;
 import org.lwjgl.Sys;
 import org.lwjgl.input.Keyboard;
@@ -38,7 +37,7 @@ public class BrickBreaker {
     private static double BALL_SPEED = 0.3;
     private static int BAT_LENGTH = 80;
     private static int BAT_HEIGHT = 15;
-    private static int stage = 2;
+    private static int stage = 1;
     private static int timeScore = 600;
     private static int score = 0;
     private static double BAT_SPEED = 0.6;
@@ -50,10 +49,12 @@ public class BrickBreaker {
     private static long wide;
     private static long slow;
     private static int difficulty;
-    static int multiplayer = 1;
+    static int multiplayer = 2;
 
     
-    public BrickBreaker(){
+    public BrickBreaker(int diff, int multi){
+    	multiplayer = multi;
+    	stage = diff;
     	String args[] = null;
     	main(args);
     }
@@ -314,7 +315,7 @@ public class BrickBreaker {
 			            		//System.out.println("Hit X");
 			            		ball.setDY(-1*((ball.getDY())));
 			            	}
-			            	else if(ball.getY() > (brick.getY()+2) && ball.getY() < (brick.getY() + brick.getHeight()-2))
+			            	else if(ball.getY() > (brick.getY()) && ball.getY() < (brick.getY() + brick.getHeight()))
 			            	{
 			            		//System.out.println("Hit Y");
 			            		ball.setDX(-1*((ball.getDX())));
